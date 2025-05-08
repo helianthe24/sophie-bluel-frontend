@@ -3,19 +3,87 @@
    License: none (public domain)
 */
 
-html, body, div, span, applet, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, u, i, center,
-dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed,
-figure, figcaption, footer, header, hgroup,
-menu, nav, output, ruby, section, summary,
-time, mark, audio, video {
+html,
+body,
+div,
+span,
+applet,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+s,
+samp,
+small,
+strike,
+strong,
+sub,
+sup,
+tt,
+var,
+b,
+u,
+i,
+center,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+embed,
+figure,
+figcaption,
+footer,
+header,
+hgroup,
+menu,
+nav,
+output,
+ruby,
+section,
+summary,
+time,
+mark,
+audio,
+video {
 	margin: 0;
 	padding: 0;
 	border: 0;
@@ -23,47 +91,87 @@ time, mark, audio, video {
 	font: inherit;
 	vertical-align: baseline;
 }
+
 /* HTML5 display-role reset for older browsers */
-article, aside, details, figcaption, figure,
-footer, header, hgroup, menu, nav, section {
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section {
 	display: block;
 }
+
 body {
-	line-height: 1;
+	max-width: 1140px;
+	margin: auto;
+	font-family: 'Work Sans';
+	font-size: 14px;
+	background-color: #fffef8;
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+	/* Assure que le body prend toute la hauteur de la fenêtre */
 }
-ol, ul {
+
+ol,
+ul {
 	list-style: none;
 }
-blockquote, q {
+
+blockquote,
+q {
 	quotes: none;
 }
-blockquote:before, blockquote:after,
-q:before, q:after {
+
+blockquote:before,
+blockquote:after,
+q:before,
+q:after {
 	content: '';
 	content: none;
 }
+
 table {
 	border-collapse: collapse;
 	border-spacing: 0;
 }
+
 /** end reset css**/
 body {
 	max-width: 1140px;
-	margin:auto;
-	font-family: 'Work Sans' ;
+	margin: auto;
+	font-family: 'Work Sans';
 	font-size: 14px;
 	background-color: #fffef8;
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
 }
+
 header {
 	display: flex;
 	justify-content: space-between;
 	margin: 50px 0
 }
+
+main {
+	flex: 1;
+	/* Prend l'espace restant pour pousser le footer vers le bas */
+}
+
 section {
 	margin: 50px 0
 }
 
-h1{
+h1 {
 	display: flex;
 	flex-direction: column;
 	font-family: 'Syne';
@@ -72,37 +180,42 @@ h1{
 	color: #B1663C
 }
 
-h1 > span {
+h1>span {
 	font-family: 'Work Sans';
-	font-size:10px;
+	font-size: 10px;
 	letter-spacing: 0.1em;
-;
+	;
 }
 
-h2{
+h2 {
 	font-family: 'Syne';
 	font-weight: 700;
 	font-size: 30px;
 	color: #1D6154
 }
+
 nav ul {
 	display: flex;
 	align-items: center;
 	list-style-type: none;
 
 }
+
 nav li {
 	padding: 0 10px;
 	font-size: 1.2em;
 }
 
 nav a {
-	text-decoration: none; /* Supprime le soulignement */
-	color: inherit;        /* Hérite de la couleur du parent, donc la même que les <li> */
+	text-decoration: none;
+	/* Supprime le soulignement */
+	color: inherit;
+	/* Hérite de la couleur du parent, donc la même que les <li> */
 }
 
 nav a:visited {
-	color: inherit;        /* Supprime la couleur violette des liens visités */
+	color: inherit;
+	/* Supprime la couleur violette des liens visités */
 }
 
 nav a.active {
@@ -112,13 +225,16 @@ nav a.active {
 li:hover {
 	color: #B1663C;
 }
+
 #introduction {
 	display: flex;
 	align-items: center;
 }
+
 #introduction figure {
 	flex: 1
 }
+
 #introduction img {
 	display: block;
 	margin: auto;
@@ -128,6 +244,7 @@ li:hover {
 #introduction article {
 	flex: 1
 }
+
 #introduction h2 {
 	margin-bottom: 1em;
 }
@@ -135,6 +252,7 @@ li:hover {
 #introduction p {
 	margin-bottom: 0.5em;
 }
+
 #portfolio h2 {
 	text-align: center;
 	margin-bottom: 1em;
@@ -142,39 +260,41 @@ li:hover {
 
 /* Supprimer les styles du select */
 .category-filter {
-    display: none; /* Cache l'ancien menu déroulant */
+	display: none;
+	/* Cache l'ancien menu déroulant */
 }
 
 /* Nouveaux styles pour les boutons */
 .filters ul {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin: 30px 0;
-    padding: 0;
+	display: flex;
+	justify-content: center;
+	gap: 15px;
+	margin: 30px 0;
+	padding: 0;
 }
 
 .filters button {
-    font-family: 'Syne';
-    font-size: 16px;
-    font-weight: 700;
-    color: #1D6154;
-    background: #fffef8;
-    border: 1px solid #1D6154;
-    border-radius: 60px;
-    padding: 10px 20px;
-    cursor: pointer;
-    transition: all 0.3s ease;
+	font-family: 'Syne';
+	font-size: 16px;
+	font-weight: 700;
+	color: #1D6154;
+	background: #fffef8;
+	border: 1px solid #1D6154;
+	border-radius: 60px;
+	padding: 10px 20px;
+	cursor: pointer;
+	transition: all 0.3s ease;
 }
 
 .filters button:hover,
 .filters button.active {
-    background-color: #1D6154;
-    color: white;
+	background-color: #1D6154;
+	color: white;
 }
 
 .filters button.active {
-    pointer-events: none; /* Désactive le clic sur le bouton actif */
+	pointer-events: none;
+	/* Désactive le clic sur le bouton actif */
 }
 
 .gallery {
@@ -189,20 +309,24 @@ li:hover {
 	width: 100%;
 
 }
+
 #contact {
 	width: 50%;
-margin: auto;
+	margin: auto;
 }
-#contact > * {
+
+#contact>* {
 	text-align: center;
 
 }
-#contact h2{
+
+#contact h2 {
 	margin-bottom: 20px;
 }
+
 #contact form {
 	text-align: left;
-	margin-top:30px;
+	margin-top: 30px;
 	display: flex;
 	flex-direction: column;
 }
@@ -213,30 +337,80 @@ margin: auto;
 	border: none;
 	box-shadow: 0px 4px 14px rgba(0, 0, 0, 0.09);
 }
+
 #contact label {
 	margin: 2em 0 1em 0;
 }
+
 #contact textarea {
 	border: none;
 	box-shadow: 0px 4px 14px rgba(0, 0, 0, 0.09);
 }
 
-input[type="submit"]{
+input[type="submit"] {
 	font-family: 'Syne';
 	font-weight: 700;
 	color: white;
 	background-color: #1D6154;
-	margin : 2em auto ;
+	margin: 2em auto;
 	width: 180px;
 	text-align: center;
-	border-radius: 60px ;
+	border-radius: 60px;
 }
+
+footer {
+	position: relative;
+	left: 50%;
+	width: 100vw;
+	/* tout l’écran */
+	transform: translateX(-50%);
+	/* recentrer la zone plein écran */
+	background-color: #FFFFFF;
+	height: 60px;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	/* vertical centering */
+	z-index: 1;
+}
+
+.footer-container {
+	max-width: 1140px;
+	margin: 0 auto;
+	width: 100%;
+	box-sizing: border-box;
+}
+
 
 footer nav ul {
 	display: flex;
 	justify-content: flex-end;
-	margin: 2em
+	margin: 0;
+	/* supprime le margin:2em précédent */
+	padding: 0 20px;
+	/* éventuel padding horizontal */
+	height: 100%;
+	/* pour align-items centré verticalement */
+	align-items: center;
 }
+
+footer nav li {
+	margin-left: 1em;
+}
+
+footer nav a {
+	color: #333;
+	font-size: 0.9rem;
+	text-decoration: none;
+}
+
+.top-bar {
+	position: fixed;
+	top: 0;
+	width: 100%;
+	z-index: 9999;
+}
+
 
 /* ============ SECTION LOGIN ============ */
 #login {
@@ -303,4 +477,72 @@ footer {
 	padding: 40px;
 	font-size: 0.9rem;
 	color: #333;
+}
+
+/* ============ MODALE ============ */
+
+.modal {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	background-color: white;
+	padding: 40px;
+	border-radius: 20px;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+	width: 60%;
+	max-width: 800px;
+	z-index: 1000;
+}
+
+.modal h3 {
+	text-align: center;
+	font-size: 1.8rem;
+	margin-bottom: 30px;
+}
+
+.modal .gallery {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+	gap: 15px;
+	margin-bottom: 30px;
+	justify-items: center;
+}
+
+.modal .gallery img {
+	width: 100%;
+	object-fit: cover;
+	border-radius: 10px;
+}
+
+.modal .add-photo-button {
+	display: block;
+	margin: 0 auto;
+	background-color: #1D6154;
+	color: white;
+	padding: 10px 20px;
+	font-weight: bold;
+	border: none;
+	border-radius: 20px;
+	cursor: pointer;
+	transition: background-color 0.3s;
+}
+
+.modal .add-photo-button:hover {
+	background-color: #15463c;
+}
+
+.modal .close-button {
+	position: absolute;
+	top: 20px;
+	right: 25px;
+	font-size: 1.5rem;
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: #aaa;
+}
+
+.modal .close-button:hover {
+	color: black;
 }

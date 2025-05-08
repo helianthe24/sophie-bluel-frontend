@@ -1,6 +1,10 @@
+// main.js
+
 const API_BASE = 'http://localhost:5678';
 const apiUrlWorks = `${API_BASE}/api/works`;
 const apiUrlCategories = `${API_BASE}/api/categories`;
+const token = localStorage.getItem('authToken');
+const loginLink = document.getElementById('login-link');
 
 // Fonction pour récupérer les données des travaux et des catégories
 async function fetchData() {
@@ -14,129 +18,394 @@ async function fetchData() {
             throw new Error('Erreur lors de la récupération des données');
         }
 
-        const works = await worksResponse.json(); // Transformation de la réponse en JSON
-        const categories = await categoriesResponse.json(); // Transformation de la réponse en JSON
+        const works = await worksResponse.json();
+        const categories = await categoriesResponse.json();
 
-        // Affichage des données dans la console
-        console.log(works);
-        console.log(categories);
-
-        // Création du menu de filtres
         createCategoryMenu(categories);
-
-        // Affichage des travaux
-        console.log("Works:", works);
-        console.log("Categories:", categories);
-        displayWorks(works, categories);
-
+        displayWorks(works);
     } catch (error) {
-        console.error('Erreur:', error);
+        console.error('Erreur :', error);
     }
 }
 
-// Fonction pour créer dynamiquement le menu de catégories
-function createCategoryMenu(categories) {
-    const filtersUl = document.querySelector('.filters ul');
-
-    // Supprime le "Tous" par défaut pour éviter les doublons
-    filtersUl.innerHTML = '';
-
-    // Crée le bouton "Tous"
-    const allButton = document.createElement('li');
-    allButton.innerHTML = `
-        <button class="active" data-category="all">Tous</button>
-    `;
-    filtersUl.appendChild(allButton);
-
-    // Ajoute les boutons pour chaque catégorie
-    categories.forEach(category => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-            <button data-category="${category.id}">${category.name}</button>
-        `;
-        filtersUl.appendChild(li);
-    });
-
-    // Gestionnaire de clic pour les boutons
-    document.querySelectorAll('.filters button').forEach(button => {
-        button.addEventListener('click', (e) => {
-            // Retire la classe active de tous les boutons
-            document.querySelectorAll('.filters button').forEach(btn => {
-                btn.classList.remove('active');
-            });
-
-            // Ajoute la classe active au bouton cliqué
-            e.target.classList.add('active');
-
-            // Déclenche le filtrage
-            const categoryId = e.target.dataset.category;
-            filterWorksByCategory(categoryId);
-        });
-    });
-}
-
-// Fonction pour filtrer les travaux selon la catégorie sélectionnée
-function filterWorksByCategory(categoryId) {
-    const works = document.querySelectorAll('.work');
-
-    works.forEach(work => {
-        const workCategoryId = work.dataset.categoryId; // Récupère le data-category-id
-        if (categoryId === 'all' || workCategoryId === categoryId) {
-            work.style.display = ''; // Affiche le travail
-        } else {
-            work.style.display = 'none'; // Cache le travail
-        }
-    });
-}
-
-// Fonction pour afficher les travaux dans la galerie
-function displayWorks(works, categories) {
+// Affichage dynamique des projets dans le DOM
+function displayWorks(works) {
     const gallery = document.querySelector('.gallery');
-    gallery.innerHTML = ''; // Efface tous les travaux déjà affichés
-
-    works.forEach(work => {
-        const workElement = document.createElement('figure');
-        workElement.classList.add('work');
-        workElement.dataset.categoryId = work.categoryId; // Associe la catégorie du travail avec un data-attribute
-
-        // Recherche le nom de la catégorie en fonction de l'id
-        const category = categories.find(c => c.id === work.categoryId);
-        const categoryName = category ? category.name : 'Non spécifié';
-
-        // Correction du chemin vers l'image
-        const src = work.imageUrl.startsWith('http') ?
-            work.imageUrl :
-            `${API_BASE}${work.imageUrl}`;
-
-        workElement.innerHTML = `
-            <img src="${src}" alt="${work.title}" class="work-image" />
-            <figcaption class="work-title">${work.title} — ${categoryName}</figcaption>
-        `;
-        gallery.appendChild(workElement); // Ajoute chaque travail dans la galerie
+    gallery.innerHTML = '';
+    works.forEach((work) => {
+        const figure = document.createElement('figure');
+        const img = document.createElement('img');
+        img.src = work.imageUrl;
+        img.alt = work.title;
+        const caption = document.createElement('figcaption');
+        caption.innerText = work.title;
+        figure.appendChild(img);
+        figure.appendChild(caption);
+        gallery.appendChild(figure);
     });
 }
 
-// Appel de la fonction pour récupérer et afficher les travaux
-fetchData();
+// Création du menu de filtres catégories
+function createCategoryMenu(categories) {
+    const filtersContainer = document.querySelector('.filters');
+    if (!filtersContainer) return;
 
-// Gestion du bouton login/logout
-const loginLink = document.getElementById('login-link');
-const token = localStorage.getItem('authToken');
+    // Vise le <ul> à l’intérieur de .filters
+    const ul = filtersContainer.querySelector('ul');
+    if (!ul) return;
 
-if (loginLink) {
-    if (token) {
-        // Utilisateur·rice connecté·e : transformer en logout
-        loginLink.textContent = 'logout';
-        loginLink.href = '#';
+    ul.innerHTML = ''; // Vide les anciens filtres si jamais
 
-        loginLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            localStorage.removeItem('authToken');
-            window.location.reload();
+    const createFilterButton = (text, categoryId = null, isActive = false) => {
+        const li = document.createElement('li');
+        const button = document.createElement('button');
+        button.textContent = text;
+        button.classList.add('filter-btn');
+        if (isActive) button.classList.add('active');
+
+        button.dataset.category = categoryId ?? 'all';
+        li.appendChild(button);
+        ul.appendChild(li);
+
+        button.addEventListener('click', async () => {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            const res = await fetch(apiUrlWorks);
+            const data = await res.json();
+
+            if (!categoryId) {
+                displayWorks(data); // Tous
+            } else {
+                const filtered = data.filter(work => work.categoryId === categoryId);
+                displayWorks(filtered);
+            }
         });
-    } else {
-        // Non connecté·e : lien normal vers login
+    };
+
+    createFilterButton('Tous', null, true);
+
+    categories.forEach((category) => {
+        createFilterButton(category.name, category.id);
+    });
+}
+
+// Fonction propre pour logout
+function logoutUser() {
+    localStorage.removeItem('authToken');
+    const editBar = document.getElementById('edit-bar');
+    if (editBar) editBar.remove();
+    if (loginLink) {
         loginLink.textContent = 'login';
         loginLink.href = 'login.html';
     }
+    const editIcons = document.querySelectorAll('.edit-icon');
+    editIcons.forEach(icon => icon.remove());
 }
+
+// Barre noire de mode édition
+function createEditBar() {
+    const topBar = document.createElement('div');
+    topBar.id = 'edit-bar';
+
+    Object.assign(topBar.style, {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '100vw',
+        zIndex: '1000',
+        backgroundColor: 'black',
+        color: 'white',
+        padding: '8px 0',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: '10px',
+        fontSize: '16px',
+        height: '59px',
+        fontWeight: 'normal'
+    });
+
+    const editModeText = document.createElement('span');
+    editModeText.textContent = 'Mode édition';
+
+    const editIcon = document.createElement('i');
+    editIcon.className = 'fa-solid fa-pen-to-square';
+    editIcon.style.fontSize = '18px';
+    editIcon.style.cursor = 'pointer';
+    editIcon.style.fontWeight = 'normal';
+    editIcon.addEventListener('click', () => {
+        createModal();
+    });    
+
+    topBar.appendChild(editModeText);
+    topBar.appendChild(editIcon);
+
+    document.body.prepend(topBar);
+
+    // Décaler le reste de la page vers le bas
+    document.body.style.paddingTop = '40px';
+}
+
+function addEditIcon() {
+    const portfolioTitle = document.querySelector('#portfolio h2');
+    if (portfolioTitle) {
+        // Conteneur inline pour l’icône + le texte "modifier"
+        const editContainer = document.createElement('span');
+        editContainer.classList.add('edit-icon');
+        editContainer.style.display = 'inline-flex';
+        editContainer.style.alignItems = 'center';
+        editContainer.style.gap = '6px';
+        editContainer.style.marginLeft = '10px';
+        editContainer.style.fontSize = '16px';
+        editContainer.style.color = 'black';
+        editContainer.style.cursor = 'pointer';
+
+        const editIcon = document.createElement('i');
+        editIcon.className = 'fa-solid fa-pen-to-square';
+
+        const editText = document.createElement('span');
+        editText.textContent = 'modifier';
+        editText.style.fontFamily = "'Work Sans', sans-serif"; // <- on force ici la bonne police
+        editText.style.fontWeight = 'normal'; // <-- ici on enlève le gras
+
+        editContainer.appendChild(editIcon);
+        editContainer.appendChild(editText);
+
+        portfolioTitle.appendChild(editContainer);
+
+        editContainer.addEventListener('click', () => {
+            createModal();
+        });
+        
+    }
+}
+
+function createModal() {
+    const modalContainer = document.getElementById('modal-container');
+
+    const overlay = document.createElement('div');
+    overlay.id = 'modal-overlay';
+    Object.assign(overlay.style, {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: '2000',
+    });
+
+    const modal = document.createElement('div');
+    modal.id = 'modal';
+    Object.assign(modal.style, {
+        width: '600px',
+        backgroundColor: '#fff',
+        borderRadius: '10px',
+        padding: '30px',
+        position: 'relative',
+        fontFamily: "'Work Sans', sans-serif",
+    });
+
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '&times;';
+    Object.assign(closeBtn.style, {
+        position: 'absolute',
+        top: '15px',
+        right: '20px',
+        background: 'none',
+        border: 'none',
+        fontSize: '24px',
+        cursor: 'pointer',
+    });
+    closeBtn.addEventListener('click', () => overlay.remove());
+
+    const title = document.createElement('h3');
+    title.textContent = 'Ajout photo';
+    Object.assign(title.style, {
+        textAlign: 'center',
+        fontSize: '24px',
+        marginBottom: '20px',
+    });
+
+    const form = document.createElement('form');
+    form.id = 'add-work-form';
+
+    // ZONE D’APERCU
+    const preview = document.createElement('div');
+    preview.id = 'preview-image';
+    Object.assign(preview.style, {
+        height: '180px',
+        backgroundColor: '#E8F1F6',
+        borderRadius: '3px',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexDirection: 'column',
+        marginBottom: '20px',
+        overflow: 'hidden',
+        position: 'relative',
+        cursor: 'pointer'
+    });
+
+    const icon = document.createElement('i');
+    icon.className = 'fa-regular fa-image';
+    Object.assign(icon.style, {
+        fontSize: '60px',
+        color: '#B9C5CC',
+        marginBottom: '10px',
+    });
+
+    const previewText = document.createElement('p');
+    previewText.textContent = '+ Ajouter photo';
+    Object.assign(previewText.style, {
+        fontSize: '14px',
+        color: '#444',
+    });
+
+    preview.appendChild(icon);
+    preview.appendChild(previewText);
+
+    // INPUT invisible mais déclenché par clic sur preview
+    const inputImage = document.createElement('input');
+    inputImage.type = 'file';
+    inputImage.accept = 'image/*';
+    inputImage.required = true;
+    inputImage.style.display = 'none';
+
+    preview.addEventListener('click', () => inputImage.click());
+
+    inputImage.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const imgPreview = document.createElement('img');
+            imgPreview.src = URL.createObjectURL(file);
+            Object.assign(imgPreview.style, {
+                height: '100%',
+                objectFit: 'cover',
+            });
+            preview.innerHTML = '';
+            preview.appendChild(imgPreview);
+        }
+    });
+
+    const inputTitle = document.createElement('input');
+    inputTitle.type = 'text';
+    inputTitle.placeholder = 'Titre';
+    inputTitle.required = true;
+    Object.assign(inputTitle.style, {
+        display: 'block',
+        margin: '10px 0',
+        width: '100%',
+        padding: '10px',
+        borderRadius: '5px',
+        border: '1px solid #ccc',
+        fontSize: '14px',
+        fontFamily: 'inherit'
+    });
+
+    const selectCategory = document.createElement('select');
+    selectCategory.required = true;
+    Object.assign(selectCategory.style, {
+        display: 'block',
+        margin: '10px 0',
+        width: '100%',
+        padding: '10px',
+        borderRadius: '5px',
+        border: '1px solid #ccc',
+        fontSize: '14px',
+        fontFamily: 'inherit'
+    });
+
+    fetch(apiUrlCategories)
+        .then(res => res.json())
+        .then(categories => {
+            categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat.id;
+                option.textContent = cat.name;
+                selectCategory.appendChild(option);
+            });
+        });
+
+    const submitBtn = document.createElement('button');
+    submitBtn.type = 'submit';
+    submitBtn.textContent = 'Valider';
+    Object.assign(submitBtn.style, {
+        marginTop: '20px',
+        display: 'block',
+        width: '100%',
+        padding: '10px',
+        backgroundColor: '#1D6154',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '5px',
+        cursor: 'pointer',
+        fontSize: '16px',
+    });
+
+    form.appendChild(preview);
+    form.appendChild(inputImage);
+    form.appendChild(inputTitle);
+    form.appendChild(selectCategory);
+    form.appendChild(submitBtn);
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData();
+        formData.append('image', inputImage.files[0]);
+        formData.append('title', inputTitle.value);
+        formData.append('category', selectCategory.value);
+
+        try {
+            const res = await fetch(`${API_BASE}/api/works`, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                body: formData,
+            });
+
+            if (!res.ok) throw new Error('Erreur lors de l’envoi');
+
+            overlay.remove();
+            await fetchData(); // recharge les projets
+        } catch (err) {
+            alert('Erreur lors de l’ajout de la photo');
+            console.error(err);
+        }
+    });
+
+    modal.appendChild(closeBtn);
+    modal.appendChild(title);
+    modal.appendChild(form);
+    overlay.appendChild(modal);
+    modalContainer.appendChild(overlay);
+}
+
+
+// Initialisation de la page
+
+document.addEventListener('DOMContentLoaded', async () => {
+    await fetchData();
+
+    if (loginLink) {
+        if (token) {
+            loginLink.textContent = 'logout';
+            loginLink.href = '#';
+            loginLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                logoutUser();
+            });
+            createEditBar();
+            addEditIcon();
+        } else {
+            loginLink.textContent = 'login';
+            loginLink.href = 'login.html';
+        }
+    }
+});
