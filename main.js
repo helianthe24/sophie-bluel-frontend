@@ -6,7 +6,7 @@ const apiUrlCategories = `${API_BASE}/api/categories`;
 const token = localStorage.getItem("authToken");
 const loginLink = document.getElementById("login-link");
 
-// Fonction pour récupérer les données des travaux et des catégories
+// Function to fetch project and category data
 async function fetchData() {
   try {
     const [worksResponse, categoriesResponse] = await Promise.all([
@@ -28,7 +28,7 @@ async function fetchData() {
   }
 }
 
-// Affichage dynamique des projets dans le DOM
+// Dynamically display projects in the DOM
 function displayWorks(works) {
   const gallery = document.querySelector(".gallery");
   gallery.innerHTML = "";
@@ -45,16 +45,16 @@ function displayWorks(works) {
   });
 }
 
-// Création du menu de filtres catégories
+// Create the category filter menu
 function createCategoryMenu(categories) {
   const filtersContainer = document.querySelector(".filters");
   if (!filtersContainer) return;
 
-  // Vise le <ul> à l’intérieur de .filters
+  // Target the <ul> inside .filters
   const ul = filtersContainer.querySelector("ul");
   if (!ul) return;
 
-  ul.innerHTML = ""; // Vide les anciens filtres si jamais
+  ul.innerHTML = ""; // Clear any existing filters if necessary
 
   const createFilterButton = (text, categoryId = null, isActive = false) => {
     const li = document.createElement("li");
@@ -77,7 +77,7 @@ function createCategoryMenu(categories) {
       const data = await res.json();
 
       if (!categoryId) {
-        displayWorks(data); // Tous
+        displayWorks(data); // All
       } else {
         const filtered = data.filter((work) => work.categoryId === categoryId);
         displayWorks(filtered);
@@ -92,7 +92,7 @@ function createCategoryMenu(categories) {
   });
 }
 
-// Fonction propre pour logout
+// Clean function for logout
 function logoutUser() {
   localStorage.removeItem("authToken");
   const editBar = document.getElementById("edit-bar");
@@ -105,7 +105,7 @@ function logoutUser() {
   editIcons.forEach((icon) => icon.remove());
 }
 
-// Barre noire de mode édition
+// Black edition mode bar
 function createEditBar() {
   const topBar = document.createElement("div");
   topBar.id = "edit-bar";
@@ -145,14 +145,14 @@ function createEditBar() {
 
   document.body.prepend(topBar);
 
-  // Décaler le reste de la page vers le bas
+  // Push the rest of the page downward
   document.body.style.paddingTop = "40px";
 }
 
 function addEditIcon() {
   const portfolioTitle = document.querySelector("#portfolio h2");
   if (portfolioTitle) {
-    // Conteneur inline pour l’icône + le texte "modifier"
+    // Inline container for the icon + "edit" text
     const editContainer = document.createElement("span");
     editContainer.classList.add("edit-icon");
     editContainer.style.display = "inline-flex";
@@ -235,7 +235,7 @@ function createModal() {
   const form = document.createElement("form");
   form.id = "add-work-form";
 
-  // ZONE D’APERCU
+  // PREVIEW AREA
   const preview = document.createElement("div");
   preview.id = "preview-image";
   Object.assign(preview.style, {
@@ -270,7 +270,7 @@ function createModal() {
   preview.appendChild(icon);
   preview.appendChild(previewText);
 
-  // INPUT invisible mais déclenché par clic sur preview
+  // Hidden input triggered by clicking on the preview
   const inputImage = document.createElement("input");
   inputImage.type = "file";
   inputImage.accept = "image/*";
@@ -374,7 +374,7 @@ function createModal() {
       if (!res.ok) throw new Error("Erreur lors de l’envoi");
 
       overlay.remove();
-      await fetchData(); // recharge les projets
+      await fetchData(); // reload the works
     } catch (err) {
       alert("Erreur lors de l’ajout de la photo");
       console.error(err);
@@ -388,7 +388,7 @@ function createModal() {
   modalContainer.appendChild(overlay);
 }
 
-// Initialisation de la page
+// Page initialization
 
 document.addEventListener("DOMContentLoaded", async () => {
   await fetchData();

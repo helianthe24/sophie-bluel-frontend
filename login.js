@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const password = form.password.value;
 
     try {
-      // 2. On utilise maintenant API_BASE pour construire l’URL
+      // 2. Now we use API_BASE to build the URL
       const response = await fetch(`${API_BASE}/api/users/login`, {
         method: "POST",
         headers: {
@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }),
       });
 
-      // pour debug, affiche le status dans la console :
+      // For debugging: display the status in the console
       console.log("HTTP status:", response.status);
 
       const data = await response.json();
