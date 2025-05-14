@@ -21,8 +21,24 @@ async function fetchData() {
     const works = await worksResponse.json();
     const categories = await categoriesResponse.json();
 
-    createCategoryMenu(categories);
+    // 1️⃣ Affiche toujours tous les projets
     displayWorks(works);
+
+    // 2️⃣ Gère l'affichage des filtres
+    const filtersContainer = document.querySelector(".filters");
+    const portfolioTitle = document.querySelector("#portfolio h2");
+
+    if (localStorage.getItem("authToken")) {
+      // Si l'utilisateur est connecté, on cache complètement les filtres
+      if (filtersContainer) filtersContainer.style.display = "none";
+      // Et on ajoute 96px de marge au titre
+      if (portfolioTitle) portfolioTitle.style.marginBottom = "96px";
+    } else {
+      // Sinon, on affiche le bloc et on génère les boutons
+      if (filtersContainer) filtersContainer.style.display = "";
+      if (portfolioTitle) portfolioTitle.style.marginTop = ""; // réinitialise
+      createCategoryMenu(categories);
+    }
   } catch (error) {
     console.error("Erreur :", error);
   }
@@ -47,6 +63,7 @@ function displayWorks(works) {
 
 // Create the category filter menu
 function createCategoryMenu(categories) {
+  if (localStorage.getItem("authToken")) return;
   const filtersContainer = document.querySelector(".filters");
   if (!filtersContainer) return;
 
@@ -182,9 +199,10 @@ function addEditIcon() {
   }
 }
 
-function createModal() {
+function createModal(works) {
   const modalContainer = document.getElementById("modal-container");
 
+  // Overlay
   const overlay = document.createElement("div");
   overlay.id = "modal-overlay";
   Object.assign(overlay.style, {
@@ -193,176 +211,239 @@ function createModal() {
     left: "0",
     width: "100vw",
     height: "100vh",
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    backgroundColor: "rgba(0,0,0,0.6)",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
     zIndex: "2000",
   });
 
+  // Modal (630×670)
   const modal = document.createElement("div");
   modal.id = "modal";
   Object.assign(modal.style, {
-    width: "600px",
+    width: "630px",
+    height: "670px",
     backgroundColor: "#fff",
     borderRadius: "10px",
-    padding: "30px",
+    padding: "30px 20px",
     position: "relative",
     fontFamily: "'Work Sans', sans-serif",
+    fontWeight: "400",
+    boxSizing: "border-box",
+    overflowY: "auto",
   });
 
+  // ← Back
+  const backBtn = document.createElement("button");
+  backBtn.textContent = "←";
+  Object.assign(backBtn.style, {
+    position: "absolute",
+    top: "20px",
+    left: "20px",
+    background: "none",
+    border: "none",
+    fontSize: "20px",
+    cursor: "pointer",
+  });
+  backBtn.onclick = () => {
+    createManageGalleryModal(works);
+    overlay.remove();
+  };
+
+  // × Close
   const closeBtn = document.createElement("button");
-  closeBtn.innerHTML = "&times;";
+  closeBtn.innerHTML = "×";
   Object.assign(closeBtn.style, {
     position: "absolute",
-    top: "15px",
+    top: "20px",
     right: "20px",
     background: "none",
     border: "none",
-    fontSize: "24px",
+    fontSize: "20px",
     cursor: "pointer",
   });
-  closeBtn.addEventListener("click", () => overlay.remove());
+  closeBtn.onclick = () => overlay.remove();
 
+  // Title
   const title = document.createElement("h3");
   title.textContent = "Ajout photo";
   Object.assign(title.style, {
     textAlign: "center",
-    fontSize: "24px",
-    marginBottom: "20px",
+    fontSize: "20px",
+    margin: "0 0 20px",
+    fontWeight: "400",
   });
 
+  // Form
   const form = document.createElement("form");
   form.id = "add-work-form";
 
-  // PREVIEW AREA
+  // --- Preview area (initial) ---
   const preview = document.createElement("div");
   preview.id = "preview-image";
   Object.assign(preview.style, {
-    height: "180px",
-    backgroundColor: "#E8F1F6",
-    borderRadius: "3px",
+    width: "400px",
+    height: "200px",
+    backgroundColor: "transparent",
+    border: "none",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    flexDirection: "column",
-    marginBottom: "20px",
     overflow: "hidden",
-    position: "relative",
     cursor: "pointer",
+    margin: "0 auto 30px",
+    boxSizing: "border-box",
   });
-
-  const icon = document.createElement("i");
-  icon.className = "fa-regular fa-image";
-  Object.assign(icon.style, {
-    fontSize: "60px",
-    color: "#B9C5CC",
-    marginBottom: "10px",
+  const dlIcon = document.createElement("img");
+  dlIcon.src = "assets/images/dl.png";
+  dlIcon.alt = "Ajouter photo";
+  Object.assign(dlIcon.style, {
+    width: "100%",
+    height: "100%",
+    objectFit: "contain",
   });
+  preview.appendChild(dlIcon);
 
-  const previewText = document.createElement("p");
-  previewText.textContent = "+ Ajouter photo";
-  Object.assign(previewText.style, {
-    fontSize: "14px",
-    color: "#444",
-  });
-
-  preview.appendChild(icon);
-  preview.appendChild(previewText);
-
-  // Hidden input triggered by clicking on the preview
   const inputImage = document.createElement("input");
   inputImage.type = "file";
-  inputImage.accept = "image/*";
+  inputImage.accept = "image/jpeg,image/png";
   inputImage.required = true;
   inputImage.style.display = "none";
 
   preview.addEventListener("click", () => inputImage.click());
-
   inputImage.addEventListener("change", (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const imgPreview = document.createElement("img");
-      imgPreview.src = URL.createObjectURL(file);
-      Object.assign(imgPreview.style, {
-        height: "100%",
-        objectFit: "cover",
-      });
-      preview.innerHTML = "";
-      preview.appendChild(imgPreview);
-    }
+    if (!file) return;
+    // Restore border & background
+    preview.style.backgroundColor = "#E8F1F6";
+    preview.style.border = "2px dashed #CBD6DC";
+    preview.innerHTML = "";
+    const img = document.createElement("img");
+    img.src = URL.createObjectURL(file);
+    Object.assign(img.style, {
+      maxWidth: "100%",
+      maxHeight: "100%",
+      objectFit: "contain",
+    });
+    preview.appendChild(img);
   });
 
+  // --- Label + Title ---
+  const labelTitle = document.createElement("label");
+  labelTitle.textContent = "Titre";
+  Object.assign(labelTitle.style, {
+    display: "block",
+    width: "400px",
+    margin: "0 auto 8px",
+    fontSize: "14px",
+    fontWeight: "400",
+  });
   const inputTitle = document.createElement("input");
   inputTitle.type = "text";
-  inputTitle.placeholder = "Titre";
+  inputTitle.placeholder = "Titre du projet";
   inputTitle.required = true;
   Object.assign(inputTitle.style, {
     display: "block",
-    margin: "10px 0",
-    width: "100%",
-    padding: "10px",
-    borderRadius: "5px",
-    border: "1px solid #ccc",
+    width: "400px",
+    padding: "12px",
     fontSize: "14px",
-    fontFamily: "inherit",
+    borderRadius: "5px",
+    border: "1px solid #E2E2E2",
+    margin: "0 auto 20px",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+    boxSizing: "border-box",
   });
 
+  // --- Label + Category ---
+  const labelCategory = document.createElement("label");
+  labelCategory.textContent = "Catégorie";
+  Object.assign(labelCategory.style, {
+    display: "block",
+    width: "400px",
+    margin: "0 auto 8px",
+    fontSize: "14px",
+    fontWeight: "400",
+  });
   const selectCategory = document.createElement("select");
   selectCategory.required = true;
   Object.assign(selectCategory.style, {
     display: "block",
-    margin: "10px 0",
-    width: "100%",
-    padding: "10px",
-    borderRadius: "5px",
-    border: "1px solid #ccc",
+    width: "400px",
+    padding: "12px",
     fontSize: "14px",
-    fontFamily: "inherit",
+    borderRadius: "5px",
+    border: "1px solid #E2E2E2",
+    margin: "0 auto 47px",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+    boxSizing: "border-box",
+  });
+  fetch(apiUrlCategories)
+    .then((r) => r.json())
+    .then((cats) =>
+      cats.forEach((cat) => {
+        const opt = document.createElement("option");
+        opt.value = cat.id;
+        opt.textContent = cat.name;
+        selectCategory.appendChild(opt);
+      })
+    )
+    .catch(console.error);
+
+  // --- Divider ---
+  const divider = document.createElement("hr");
+  Object.assign(divider.style, {
+    border: "none",
+    borderTop: "1px solid #E2E2E2",
+    margin: "0 0 30px",
   });
 
-  fetch(apiUrlCategories)
-    .then((res) => res.json())
-    .then((categories) => {
-      categories.forEach((cat) => {
-        const option = document.createElement("option");
-        option.value = cat.id;
-        option.textContent = cat.name;
-        selectCategory.appendChild(option);
-      });
-    });
-
+  // --- Submit button ---
   const submitBtn = document.createElement("button");
   submitBtn.type = "submit";
   submitBtn.textContent = "Valider";
   Object.assign(submitBtn.style, {
-    marginTop: "20px",
     display: "block",
-    width: "100%",
-    padding: "10px",
+    margin: "0 auto",
+    padding: "12px 50px",
     backgroundColor: "#1D6154",
     color: "#fff",
-    border: "none",
-    borderRadius: "5px",
-    cursor: "pointer",
     fontSize: "16px",
+    border: "none",
+    borderRadius: "30px",
+    cursor: "pointer",
+    width: "237px",
   });
 
-  form.appendChild(preview);
-  form.appendChild(inputImage);
-  form.appendChild(inputTitle);
-  form.appendChild(selectCategory);
-  form.appendChild(submitBtn);
+  // Assemble form
+  form.append(preview, inputImage);
+  form.append(labelTitle, inputTitle);
+  form.append(labelCategory, selectCategory);
+  form.append(divider, submitBtn);
 
+  // ---- Submit handler ----
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    // Validation
+    if (
+      !inputImage.files[0] ||
+      !inputTitle.value.trim() ||
+      !selectCategory.value
+    ) {
+      alert("Veuillez remplir tous les champs du formulaire.");
+      return;
+    }
+
+    // Build FormData
     const formData = new FormData();
     formData.append("image", inputImage.files[0]);
-    formData.append("title", inputTitle.value);
+    formData.append("title", inputTitle.value.trim());
     formData.append("category", selectCategory.value);
 
     try {
+      // Send to API
+      const token = localStorage.getItem("authToken");
       const res = await fetch(`${API_BASE}/api/works`, {
         method: "POST",
         headers: {
@@ -370,20 +451,19 @@ function createModal() {
         },
         body: formData,
       });
-
       if (!res.ok) throw new Error("Erreur lors de l’envoi");
 
+      // On success : close & refresh
       overlay.remove();
-      await fetchData(); // reload the works
+      await fetchData();
     } catch (err) {
       alert("Erreur lors de l’ajout de la photo");
       console.error(err);
     }
   });
 
-  modal.appendChild(closeBtn);
-  modal.appendChild(title);
-  modal.appendChild(form);
+  // Mount modal
+  modal.append(backBtn, closeBtn, title, form);
   overlay.appendChild(modal);
   modalContainer.appendChild(overlay);
 }
@@ -525,7 +605,7 @@ function createManageGalleryModal(works) {
   });
   addPhotoBtn.addEventListener("click", () => {
     overlay.remove();
-    createModal();
+    createModal(works); // ← on transmet la liste des works
   });
 
   modal.appendChild(closeBtn);
